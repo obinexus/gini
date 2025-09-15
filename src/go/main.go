@@ -10,239 +10,154 @@ import (
     "time"
 )
 
-// GINIStanza represents each line of the Consciousness Mirror poem
-type GINIStanza struct {
-    Line      int    `json:"line"`
-    Text      string `json:"text"`
-    Meaning   string `json:"meaning"`
-    IaaSLayer string `json:"iaas_layer"`
-    Package   string `json:"package"`
+// GINI - means "WHAT" in Igbo - the questioning parrot who loves to gossip
+type GINI struct {
+    Question string `json:"question"`
+    Answer   string `json:"answer"`
+    Language string `json:"language"`
+    Gossip   string `json:"gossip"`
 }
 
-// LibPolycall represents the C library integration
-type LibPolycall struct {
-    mutex sync.RWMutex
-    nodes map[string]*Node
+// GINIServer handles all the questions GINI asks
+type GINIServer struct {
+    questions []string
+    gossip    []string
+    mutex     sync.RWMutex
 }
 
-// Node represents a network node in the LibPolycall system
-type Node struct {
-    ID        string    `json:"id"`
-    Connected bool      `json:"connected"`
-    Timestamp time.Time `json:"timestamp"`
-}
-
-// PoemInterpreter handles the GINI poem interpretation
-type PoemInterpreter struct {
-    stanzas []GINIStanza
-}
-
-// Initialize the poem with line-by-line meanings
-func NewPoemInterpreter() *PoemInterpreter {
-    return &PoemInterpreter{
-        stanzas: []GINIStanza{
-            {1, "The Zen of Python, by Tim Peters", "Foundation of clarity in code", "Application", "import this"},
-            {2, "Beautiful is better than ugly.", "Aesthetic code reduces cognitive load", "Platform", "gosilang.aesthetics"},
-            {3, "Explicit is better than implicit.", "Clear intent prevents bugs", "Platform", "rift.explicit"},
-            {4, "Simple is better than complex.", "Simplicity scales better", "Infrastructure", "libpolycall.simple"},
-            {5, "Complex is better than complicated.", "Organized complexity over chaos", "Infrastructure", "nlink.organize"},
-            {6, "Flat is better than nested.", "Reduce dependency depth", "Platform", "polybuild.flatten"},
-            {7, "Sparse is better than dense.", "Breathing room in code structure", "Application", "obinexus.sparse"},
-            {8, "Readability counts.", "Code is read more than written", "Platform", "rift.readable"},
-            {9, "Special cases aren't special enough to break the rules.", "Consistency over exceptions", "Infrastructure", "constitutional.rules"},
-            {10, "Although practicality beats purity.", "Real-world solutions matter", "Application", "opensense.practical"},
-            {11, "Errors should never pass silently.", "Explicit error handling", "Infrastructure", "node-zero.errors"},
-            {12, "Unless explicitly silenced.", "Intentional suppression only", "Platform", "rift.suppress"},
-            {13, "In the face of ambiguity, refuse the temptation to guess.", "Deterministic behavior", "Infrastructure", "quantum.deterministic"},
-            {14, "There should be one-- and preferably only one --obvious way to do it.", "Single clear path", "Platform", "gosilang.singleton"},
-            {15, "Although that way may not be obvious at first unless you're Dutch.", "Cultural context in design", "Application", "obinexus.culture"},
-            {16, "Now is better than never.", "Ship working code", "Application", "milestone.ship"},
-            {17, "Although never is often better than *right* now.", "Quality over speed", "Platform", "rift.quality"},
-            {18, "If the implementation is hard to explain, it's a bad idea.", "Complexity should be justified", "Infrastructure", "libpolycall.explain"},
-            {19, "If the implementation is easy to explain, it may be a good idea.", "Simplicity validates design", "Application", "obinexus.validate"},
-            {20, "Namespaces are one honking great idea -- let's do more of those!", "Isolation prevents conflicts", "Infrastructure", "nlink.namespace"},
+func NewGINIServer() *GINIServer {
+    return &GINIServer{
+        questions: []string{
+            "Gini ka inweta?", // What do you have?
+            "Kedu nke a?",     // What is this?
+            "Gini?",           // What?
+            "What are you building?",
+            "What language is that?",
+            "What does this code do?",
+        },
+        gossip: []string{
+            "Did you hear about the new polyglot framework?",
+            "I heard Python and Go are best friends now!",
+            "Someone told me Rust never forgets...",
+            "They say C is the grandfather of all languages!",
         },
     }
 }
 
-// IaaS Package Manager
-type IaaSPackageManager struct {
-    packages map[string]*Package
-    mutex    sync.RWMutex
-}
-
-type Package struct {
-    Name      string    `json:"name"`
-    Version   string    `json:"version"`
-    Layer     string    `json:"layer"`
-    Deployed  bool      `json:"deployed"`
-    Timestamp time.Time `json:"timestamp"`
-}
-
-func NewIaaSPackageManager() *IaaSPackageManager {
-    return &IaaSPackageManager{
-        packages: make(map[string]*Package),
+func (gs *GINIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+    if r.URL.Path == "/api/gini" {
+        gs.handleGINI(w, r)
+        return
     }
+    gs.handleIndex(w, r)
 }
 
-func (pm *IaaSPackageManager) DeployPackage(name, version, layer string) error {
-    pm.mutex.Lock()
-    defer pm.mutex.Unlock()
+func (gs *GINIServer) handleGINI(w http.ResponseWriter, r *http.Request) {
+    gs.mutex.RLock()
+    defer gs.mutex.RUnlock()
     
-    pm.packages[name] = &Package{
-        Name:      name,
-        Version:   version,
-        Layer:     layer,
-        Deployed:  true,
-        Timestamp: time.Now(),
+    response := map[string]interface{}{
+        "greeting": "Gini? (What?)",
+        "questions": gs.questions,
+        "gossip": gs.gossip,
+        "languages": []string{"Igbo", "English", "Go", "Python", "C", "Rust"},
+        "quote": "I ask 'What?' because I want to understand!",
     }
     
-    log.Printf("Deployed package %s v%s to %s layer\n", name, version, layer)
-    return nil
-}
-
-// Web handlers
-func (pi *PoemInterpreter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(pi.stanzas)
+    json.NewEncoder(w).Encode(response)
 }
 
-func indexHandler(w http.ResponseWriter, r *http.Request) {
+func (gs *GINIServer) handleIndex(w http.ResponseWriter, r *http.Request) {
     tmpl := `
 <!DOCTYPE html>
 <html>
 <head>
-    <title>OBINexus GINI - The Consciousness Mirror</title>
+    <title>GINI - The Questioning Parrot</title>
     <style>
         body {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: #fff;
             font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
             padding: 20px;
+            text-align: center;
         }
         .container {
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
         }
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        .logo {
-            width: 150px;
-            height: 150px;
-            background: url('/static/libpolycall.png') no-repeat center;
-            background-size: contain;
-            margin: 0 auto;
-        }
-        .poem-container {
+        .gini-says {
             background: rgba(0,0,0,0.3);
             padding: 20px;
             border-radius: 10px;
-            margin-bottom: 20px;
+            margin: 20px 0;
         }
-        .stanza {
-            margin: 15px 0;
-            padding: 15px;
+        .parrot {
+            font-size: 100px;
+            margin: 20px;
+        }
+        .question {
+            font-size: 24px;
+            margin: 10px;
+            padding: 10px;
             background: rgba(255,255,255,0.1);
-            border-left: 3px solid #ff6b6b;
-            transition: all 0.3s;
-        }
-        .stanza:hover {
-            background: rgba(255,255,255,0.2);
-            transform: translateX(10px);
-        }
-        .iaas-layer {
-            display: inline-block;
-            padding: 5px 10px;
-            background: #4ecdc4;
-            color: #000;
             border-radius: 5px;
-            font-size: 0.9em;
-            margin-left: 10px;
         }
-        .package-name {
-            font-family: monospace;
-            color: #95e1d3;
-        }
-        .meaning {
-            font-style: italic;
-            color: #a8dadc;
-            margin-top: 5px;
-        }
-        #package-status {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.8);
+        .definition {
+            background: rgba(255,255,255,0.2);
             padding: 15px;
             border-radius: 10px;
-            min-width: 300px;
+            margin: 20px 0;
         }
+        h1 { font-size: 48px; }
+        h2 { font-size: 32px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <div class="logo"></div>
-            <h1>GINI: The Consciousness Mirror</h1>
-            <h2>A RIFTer's Companion - IaaS Implementation</h2>
-            <p>OBINexus Constitutional Framework v1.0</p>
+        <div class="parrot">🦜</div>
+        <h1>GINI</h1>
+        <h2>"Gini?" means "What?" in Igbo!</h2>
+        
+        <div class="definition">
+            <h3>GINI = "WHAT" in Igbo Language</h3>
+            <p>I'm a curious parrot who loves to ask questions!</p>
+            <p>I gossip with polyglot programmers in Go, Python, C, Rust...</p>
+            <p>Every conversation starts with "Gini?" (What?)</p>
         </div>
         
-        <div id="package-status">
-            <h3>Package Deployment Status</h3>
-            <div id="status-list"></div>
+        <div class="gini-says">
+            <h3>GINI asks:</h3>
+            <div class="question">Gini ka inweta? (What do you have?)</div>
+            <div class="question">What language are you coding in?</div>
+            <div class="question">What's the latest gossip in tech?</div>
+            <div class="question">What does your code do?</div>
         </div>
         
-        <div class="poem-container" id="poem-container">
-            <h3>Loading consciousness stream...</h3>
+        <div class="gini-says">
+            <h3>GINI gossips:</h3>
+            <p>"I heard Python and Go are collaborating on something big!"</p>
+            <p>"Did you know 'Gini' is how we say 'What' in Igbo?"</p>
+            <p>"Someone told me Rust never has null pointer exceptions..."</p>
         </div>
         
-        <div style="text-align: center; margin-top: 40px;">
-            <button onclick="deployAll()">Deploy All Packages</button>
-            <button onclick="loadPoem()">Refresh Poem</button>
+        <p style="margin-top: 40px;">
+            <strong>Fun Fact:</strong> In Igbo, asking "Gini?" is like asking "What?" in English.<br>
+            I'm always asking questions because I love to learn!
+        </p>
+        
+        <div style="margin-top: 40px;">
+            <button onclick="askGINI()">Ask GINI Something!</button>
         </div>
     </div>
     
     <script>
-        async function loadPoem() {
-            const response = await fetch('/api/poem');
-            const stanzas = await response.json();
-            const container = document.getElementById('poem-container');
-            
-            container.innerHTML = stanzas.map(s => `
-                <div class="stanza">
-                    <div>
-                        <strong>${s.line}.</strong> ${s.text}
-                        <span class="iaas-layer">${s.iaas_layer}</span>
-                    </div>
-                    <div class="meaning">${s.meaning}</div>
-                    <div class="package-name">Package: ${s.package}</div>
-                </div>
-            `).join('');
+        async function askGINI() {
+            const response = await fetch('/api/gini');
+            const data = await response.json();
+            console.log('GINI responds:', data);
+            alert('GINI says: ' + data.greeting + '\n\n' + data.quote);
         }
-        
-        async function deployAll() {
-            const response = await fetch('/api/deploy', {method: 'POST'});
-            const result = await response.json();
-            updateStatus(result.deployed);
-        }
-        
-        function updateStatus(packages) {
-            const statusList = document.getElementById('status-list');
-            statusList.innerHTML = packages.map(p => `
-                <div style="margin: 5px 0;">
-                    ✓ ${p.name} v${p.version} - ${p.layer}
-                </div>
-            `).join('');
-        }
-        
-        // Load poem on page load
-        loadPoem();
-        
-        // WebSocket for real-time updates (future enhancement)
-        // const ws = new WebSocket('ws://localhost:8080/ws');
     </script>
 </body>
 </html>
@@ -252,81 +167,17 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
     t.Execute(w, nil)
 }
 
-func deployHandler(pm *IaaSPackageManager) http.HandlerFunc {
-    return func(w http.ResponseWriter, r *http.Request) {
-        if r.Method != "POST" {
-            http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-            return
-        }
-        
-        // Deploy all poem-related packages
-        packages := []struct {
-            name    string
-            version string
-            layer   string
-        }{
-            {"libpolycall", "1.0.0", "Infrastructure"},
-            {"rift-compiler", "2.0.0", "Platform"},
-            {"gosilang", "3.0.0", "Platform"},
-            {"obinexus-core", "1.0.0", "Application"},
-            {"node-zero", "1.0.0", "Infrastructure"},
-            {"quantum-threat", "1.0.0", "Platform"},
-        }
-        
-        deployed := []Package{}
-        for _, p := range packages {
-            pm.DeployPackage(p.name, p.version, p.layer)
-            pm.mutex.RLock()
-            deployed = append(deployed, *pm.packages[p.name])
-            pm.mutex.RUnlock()
-        }
-        
-        w.Header().Set("Content-Type", "application/json")
-        json.NewEncoder(w).Encode(map[string]interface{}{
-            "status":   "success",
-            "deployed": deployed,
-        })
-    }
-}
-
-func statusHandler(pm *IaaSPackageManager) http.HandlerFunc {
-    return func(w http.ResponseWriter, r *http.Request) {
-        pm.mutex.RLock()
-        defer pm.mutex.RUnlock()
-        
-        packages := []Package{}
-        for _, p := range pm.packages {
-            packages = append(packages, *p)
-        }
-        
-        w.Header().Set("Content-Type", "application/json")
-        json.NewEncoder(w).Encode(packages)
-    }
-}
-
 func main() {
-    // Initialize components
-    poemInterpreter := NewPoemInterpreter()
-    packageManager := NewIaaSPackageManager()
+    server := NewGINIServer()
     
-    // Setup routes
-    http.HandleFunc("/", indexHandler)
-    http.Handle("/api/poem", poemInterpreter)
-    http.HandleFunc("/api/deploy", deployHandler(packageManager))
-    http.HandleFunc("/api/status", statusHandler(packageManager))
+    fmt.Println("🦜 GINI Server Starting...")
+    fmt.Println("==========================")
+    fmt.Println("GINI = 'WHAT' in Igbo")
+    fmt.Println("I love to ask questions and gossip!")
+    fmt.Println("")
+    fmt.Println("Server running on http://localhost:8080")
+    fmt.Println("")
+    fmt.Println("GINI asks: 'Gini ka inweta?' (What do you have?)")
     
-    // Serve static files (for LibPolycall logo)
-    http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
-    
-    // Start server with OBINexus branding
-    fmt.Println("╔═══════════════════════════════════════════════════════╗")
-    fmt.Println("║     OBINexus GINI Web Server - Constitutional v1.0    ║")
-    fmt.Println("║     Toolchain: riftlang → .so.a → rift → gosilang    ║")
-    fmt.Println("║     Build: nlink → polybuild                         ║")
-    fmt.Println("║     Computing from the Heart ❤️                       ║")
-    fmt.Println("╚═══════════════════════════════════════════════════════╝")
-    fmt.Println("\nServer starting on http://localhost:8080")
-    fmt.Println("IaaS Layers: Infrastructure | Platform | Application")
-    
-    log.Fatal(http.ListenAndServe(":8080", nil))
+    log.Fatal(http.ListenAndServe(":8080", server))
 }
